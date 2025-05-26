@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Aura Rarity Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Michroma', sans-serif;
+      background-color: #1a1a1a;
+      color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 2rem;
+      position: relative;
+    }
+
+    /* Patch Notes Button */
+    #patchNotesBtn {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      padding: 0.5rem 1rem;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 1000;
+      transition: background 0.3s;
+    }
+
+    #patchNotesBtn:hover {
+      background: #357abd;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .section {
+      background-color: #252525;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease;
+    }
+
+    .section:hover {
+      transform: scale(1.01);
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-weight: 400;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Tooltip for question marks */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+      font-weight: bold;
+      color: #4a90e2;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+      text-align: center;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    .tooltip:hover .tooltiptext,
+    .tooltip:focus .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .tooltiptext {
+      visibility: hidden;
+      width: 240px;
+      background-color: #333;
+      color: #fff;
+      text-align: left;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1001;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -120px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-family: 'Arial', sans-serif;
+      font-size: 13px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.6);
+    }
+
+    .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #333 transparent transparent transparent;
+    }
+
+    label {
+      font-size: 0.85rem;
+      display: block;
+      margin-top: 1rem;
+      color: #ccc;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.3rem;
+      border-radius: 10px;
+      border: none;
+      background: #1e1e1e;
+      color: #eee;
+      font-size: 0.9rem;
+      transition: box-shadow 0.3s ease;
+    }
+
+    select:hover, input:hover {
+      box-shadow: 0 0 10px #4a90e2;
+    }
+
+    button.calc-button {
+      margin-top: 1rem;
+      width: 100%;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 10px;
+      background: #4a90e2;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    button.calc-button:hover {
+      background: #357ABD;
+      transform: translateY(-2px);
+    }
+
+    .result {
+      margin-top: 0.8rem;
+      font-size: 1rem;
+      color: #90ee90;
+      text-align: center;
+      white-space: pre-wrap;
+    }
+
+    /* Patch notes popup */
+    #patchNotesPopup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #252525;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      width: 320px;
+      z-index: 1002;
+      color: #eee;
+      font-family: 'Arial', sans-serif;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    #patchNotesPopup h3 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-weight: bold;
+      color: #4a90e2;
+    }
+
+    #patchNotesPopup button {
+      margin-top: 1.5rem;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      font-weight: bold;
+    }
+
+    #patchNotesPopup button:hover {
+      background: #357abd;
+    }
+  </style>
+</head>
+<body>
+  <button id="patchNotesBtn" aria-label="Open Patch Notes">Patch Notes</button>
+
+  <div class="container">
+    <div class="section">
+      <h2>
+        1. Choose Your Stat Buffs
+        <span class="tooltip" tabindex="0" aria-label="More info about this section">?
+          <span class="tooltiptext">
+            Select your VIP level, left and right gauntlets, and potions here.<br>
+            These inputs determine the buffs that modify your rarity calculation.
+          </span>
+        </span>
+      </h2>
+      <label for="vipOption" title="Choose your VIP tier for a luck multiplier">VIP Level</label>
+      <select id="vipOption" aria-placeholder="Select VIP level">
+        <option value="" selected disabled>Select VIP level</option>
+        <option value="1">No VIP</option>
+        <option value="1.2">VIP (1.2x)</option>
+        <option value="1.3">VIP+ (1.3x)</option>
+      </select>
+
+      <label for="leftGauntlet" title="Choose a left-hand gauntlet for bonus effects">Left Gauntlet</label>
+      <select id="leftGauntlet" aria-placeholder="Select left gauntlet">
+        <option value="" selected disabled>Select Left Gauntlet</option>
+        <option value="none">None</option>
+        <option value="jackpot">Jackpot (+77% luck, 2x bonus roll)</option>
+        <option value="gravitational">Gravitational (6x bonus roll)</option>
+        <option value="flesh">Flesh Device (1.3x luck every roll)</option>
+      </select>
+
+      <label for="rightGauntlet" title="Choose a right-hand gauntlet for additional luck boosts">Right Gauntlet</label>
+      <select id="rightGauntlet" aria-placeholder="Select right gauntlet">
+        <option value="" selected disabled>Select Right Gauntlet</option>
+        <option value="none">None</option>
+        <option value="exo">Exo (+100%)</option>
+        <option value="galactic">Galactic (+250%)</option>
+        <option value="subzero">Subzero (+150%)</option>
+        <option value="windstorm">Windstorm (+115%)</option>
+        <option value="volcanic">Volcanic (+290%)</option>
+        <option value="exoflex">Exoflex (+340%)</option>
+        <option value="hologrammer">Hologrammer (+395%)</option>
+        <option value="ragnaroker">Ragnaroker (+445%)</option>
+        <option value="starshaper">Starshaper (+700%)</option>
+        <option value="neuralyzer">Neuralyzer (+850%)</option>
+      </select>
+
+      <label for="potions" title="Select your active potions for large rarity boosts">Potions (Ctrl+Click to select multiple)</label>
+      <select id="potions" multiple size="3" aria-placeholder="Select potions">
+        <option value="heavenly">Heavenly (+150,000%)</option>
+        <option value="bounded">Bounded (+50,000%)</option>
+        <option value="godlike">Godlike (+400,000%)</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <h2>
+        2. Raw Rarity to Boosted Rarity
+        <span class="tooltip" tabindex="0" aria-label="More info about this section">?
+          <span class="tooltiptext">
+            Enter your raw rarity and calculate the boosted rarity<br>
+            after all buffs from VIP, gauntlets, and potions are applied.
+          </span>
+        </span>
+      </h2>
+      <label for="rawRarity">Raw Rarity (e.g. 43000000)</label>
+      <input type="number" id="rawRarity" min="1" placeholder="Enter raw rarity" aria-required="true" />
+
+      <button class="calc-button" id="convertBtnRawToBoosted">Calculate Boosted Rarity</button>
+      <div id="resultRawToBoosted" class="result" aria-live="polite" aria-atomic="true"></div>
+    </div>
+
+    <div class="section">
+      <h2>
+        3. Boosted Rarity to Raw Rarity
+        <span class="tooltip" tabindex="0" aria-label="More info about this section">?
+          <span class="tooltiptext">
+            Enter your boosted rarity and calculate the equivalent raw rarity<br>
+            before buffs are applied.
+          </span>
+        </span>
+      </h2>
+      <label for="boostedRarity">Boosted Rarity (e.g. 55)</label>
+      <input type="number" id="boostedRarity" min="1" placeholder="Enter boosted rarity" aria-required="true" />
+
+      <button class="calc-button" id="convertBtnBoostedToRaw">Calculate Raw Rarity</button>
+      <div id="resultBoostedToRaw" class="result" aria-live="polite" aria-atomic="true"></div>
+    </div>
+
+    <div class="section">
+      <h2>
+        4. Raw Rarity to Boosted Rarity (Gauntlets Only)
+        <span class="tooltip" tabindex="0" aria-label="More info about this section">?
+          <span class="tooltiptext">
+            Calculate boosted rarity applying only the gauntlet buffs and VIP multiplier,<br>
+            ignoring potions.
+          </span>
+        </span>
+      </h2>
+      <label for="gauntletOnlyRaw">Raw Rarity</label>
+      <input type="number" id="gauntletOnlyRaw" min="1" placeholder="Enter raw rarity" aria-required="true" />
+
+      <button class="calc-button" id="convertBtnGauntletOnly">Calculate Boosted Rarity (Gauntlets Only)</button>
+      <div id="resultGauntletOnly" class="result" aria-live="polite" aria-atomic="true"></div>
+    </div>
+  </div>
+
+  <!-- Patch Notes Popup -->
+  <div id="patchNotesPopup" role="dialog" aria-modal="true" aria-labelledby="patchNotesTitle" tabindex="-1">
+    <h3 id="patchNotesTitle">Patch Notes</h3>
+    <pre style="white-space: pre-wrap; font-family: 'Arial', monospace; font-size: 13px;">
+V1 - 2025-05-25
+
+Added:
+- Formula updated to correctly account for VIP+ multiplier and potion effects.
+- Tooltips added to all section titles for better understanding.
+- Patch Notes popup added with example changelog.
+
+Changed:
+- UI reverted to original style per user request.
+- Buff calculation logic fixed to avoid incorrect division.
+    </pre>
+    <button id="closePatchNotesBtn" aria-label="Close Patch Notes">Close</button>
+  </div>
+
+  <script>
+    function getBuffs() {
+      // VIP multiplier
+      const vipSelect = document.getElementById('vipOption');
+      const vipMultiplier = parseFloat(vipSelect.value) || 1;
+
+      // Left Gauntlet buffs
+      const leftGauntletSelect = document.getElementById('leftGauntlet');
+      const leftGauntlet = leftGauntletSelect.value;
+
+      // Right Gauntlet buffs
+      const rightGauntletSelect = document.getElementById('rightGauntlet');
+      const rightGauntlet = rightGauntletSelect.value;
+
+      // Potions multipliers
+      const potionsSelect = document.getElementById('potions');
+      const potionsSelected = Array.from(potionsSelect.selectedOptions).map(opt => opt.value);
+
+      // Gauntlet buff percentages (luck %)
+      const gauntletBuffs = {
+        none: 0,
+        jackpot: 77,
+        gravitational: 445,
+        flesh: 30,
+        exo: 100,
+        galactic: 250,
+        subzero: 150,
+        windstorm: 115,
+        volcanic: 290,
+        exoflex: 340,
+        hologrammer: 395,
+        ragnaroker: 445,
+        starshaper: 700,
+        neuralyzer: 850
+      };
+
+      // Potions buffs in percentages
+      const potionsBuffs = {
+        heavenly: 150000,
+        bounded: 50000,
+        godlike: 400000
+      };
+
+      let gauntletLuckPercent = 0;
+      if (leftGauntlet in gauntletBuffs) gauntletLuckPercent += gauntletBuffs[leftGauntlet];
+      if (rightGauntlet in gauntletBuffs) gauntletLuckPercent += gauntletBuffs[rightGauntlet];
+
+      let potionsBuffPercent = 0;
+      potionsSelected.forEach(p => {
+        if (p in potionsBuffs) potionsBuffPercent += potionsBuffs[p];
+      });
+
+      return {
+        vipMultiplier,
+        gauntletLuckPercent,
+        potionsBuffPercent
+      };
+    }
+
+    function convertRarity() {
+      const rawRarityInput = document.getElementById('rawRarity');
+      const rawRarity = parseFloat(rawRarityInput.value);
+
+      if (isNaN(rawRarity) || rawRarity <= 0) {
+        alert('Please enter a valid raw rarity greater than 0.');
+        return;
+      }
+
+      const { vipMultiplier, gauntletLuckPercent, potionsBuffPercent } = getBuffs();
+
+      const totalMultiplier = ((1 + gauntletLuckPercent / 100) * 6 + potionsBuffPercent) * vipMultiplier;
+
+      const boostedRarity = rawRarity / totalMultiplier;
+
+      const result = `Boosted Rarity: 1 in ${Math.round(boostedRarity).toLocaleString()}`;
+      document.getElementById('resultRawToBoosted').textContent = result;
+    }
+
+    function convertBack() {
+      const boostedRarityInput = document.getElementById('boostedRarity');
+      const boostedRarity = parseFloat(boostedRarityInput.value);
+
+      if (isNaN(boostedRarity) || boostedRarity <= 0) {
+        alert('Please enter a valid boosted rarity greater than 0.');
+        return;
+      }
+
+      const { vipMultiplier, gauntletLuckPercent, potionsBuffPercent } = getBuffs();
+
+      const totalMultiplier = ((1 + gauntletLuckPercent / 100) * 6 + potionsBuffPercent) * vipMultiplier;
+
+      const rawRarity = boostedRarity * totalMultiplier;
+
+      const result = `Raw Rarity: 1 in ${Math.round(rawRarity).toLocaleString()}`;
+      document.getElementById('resultBoostedToRaw').textContent = result;
+    }
+
+    function convertGauntletOnly() {
+      const rawInput = document.getElementById('gauntletOnlyRaw');
+      const rawRarity = parseFloat(rawInput.value);
+
+      if (isNaN(rawRarity) || rawRarity <= 0) {
+        alert('Please enter a valid raw rarity greater than 0.');
+        return;
+      }
+
+      const vipSelect = document.getElementById('vipOption');
+      const vipMultiplier = parseFloat(vipSelect.value) || 1;
+
+      const leftGauntletSelect = document.getElementById('leftGauntlet');
+      const leftGauntlet = leftGauntletSelect.value;
+
+      const rightGauntletSelect = document.getElementById('rightGauntlet');
+      const rightGauntlet = rightGauntletSelect.value;
+
+      const gauntletBuffs = {
+        none: 0,
+        jackpot: 77,
+        gravitational: 445,
+        flesh: 30,
+        exo: 100,
+        galactic: 250,
+        subzero: 150,
+        windstorm: 115,
+        volcanic: 290,
+        exoflex: 340,
+        hologrammer: 395,
+        ragnaroker: 445,
+        starshaper: 700,
+        neuralyzer: 850
+      };
+
+      let gauntletLuckPercent = 0;
+      if (leftGauntlet in gauntletBuffs) gauntletLuckPercent += gauntletBuffs[leftGauntlet];
+      if (rightGauntlet in gauntletBuffs) gauntletLuckPercent += gauntletBuffs[rightGauntlet];
+
+      const multiplier = ((1 + gauntletLuckPercent / 100) * 6) * vipMultiplier;
+
+      const boosted = rawRarity / multiplier;
+
+      const result = `Boosted Rarity (Gauntlets only): 1 in ${Math.round(boosted).toLocaleString()}`;
+      document.getElementById('resultGauntletOnly').textContent = result;
+    }
+
+    // Patch notes popup controls
+    const patchNotesBtn = document.getElementById('patchNotesBtn');
+    const patchNotesPopup = document.getElementById('patchNotesPopup');
+    const closePatchNotesBtn = document.getElementById('closePatchNotesBtn');
+
+    patchNotesBtn.addEventListener('click', () => {
+      patchNotesPopup.style.display = 'block';
+      patchNotesPopup.focus();
+    });
+
+    closePatchNotesBtn.addEventListener('click', () => {
+      patchNotesPopup.style.display = 'none';
+      patchNotesBtn.focus();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && patchNotesPopup.style.display === 'block') {
+        patchNotesPopup.style.display = 'none';
+        patchNotesBtn.focus();
+      }
+    });
+
+    // Buttons event listeners
+    document.getElementById('convertBtnRawToBoosted').addEventListener('click', convertRarity);
+    document.getElementById('convertBtnBoostedToRaw').addEventListener('click', convertBack);
+    document.getElementById('convertBtnGauntletOnly').addEventListener('click', convertGauntletOnly);
+  </script>
+</body>
+</html>
